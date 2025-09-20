@@ -84,8 +84,7 @@
         </div>
     </div>
 
-    <!-- Supabase UMD Bundle -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Landing Page Script -->
     <script src="{{ asset('js/landing.js') }}"></script>
 </body>
 </html>

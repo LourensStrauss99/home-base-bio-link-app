@@ -4,40 +4,40 @@ function createAdminNavigation(currentPage = '') {
         <div class="admin-navigation">
             <h3>📊 Dashboard Navigation</h3>
             <div class="nav-grid">
-                <a href="admin.html" class="nav-item ${currentPage === 'dashboard' ? 'active' : ''}">
+                <a href="/admin/dashboard" class="nav-item ${currentPage === 'dashboard' ? 'active' : ''}">
                     <div class="nav-icon">🏠</div>
                     <span>Dashboard</span>
                 </a>
-                <a href="analytics.html" class="nav-item ${currentPage === 'analytics' ? 'active' : ''}">
+                <a href="/admin/analytics" class="nav-item ${currentPage === 'analytics' ? 'active' : ''}">
                     <div class="nav-icon">📈</div>
                     <span>Analytics</span>
                 </a>
-                <a href="activity.html" class="nav-item ${currentPage === 'activity' ? 'active' : ''}">
+                <a href="/admin/activity" class="nav-item ${currentPage === 'activity' ? 'active' : ''}">
                     <div class="nav-icon">🔥</div>
                     <span>Activity</span>
                 </a>
-                <a href="customize.html" class="nav-item ${currentPage === 'customize' ? 'active' : ''}">
+                <a href="/admin/customize" class="nav-item ${currentPage === 'customize' ? 'active' : ''}">
                     <div class="nav-icon">🎨</div>
                     <span>Customize</span>
                 </a>
-                <a href="billing.html" class="nav-item ${currentPage === 'billing' ? 'active' : ''}">
+                <a href="/admin/billing" class="nav-item ${currentPage === 'billing' ? 'active' : ''}">
                     <div class="nav-icon">💳</div>
                     <span>Billing</span>
                 </a>
-                <a href="subscription.html" class="nav-item ${currentPage === 'subscription' ? 'active' : ''}">
+                <a href="/admin/subscription" class="nav-item ${currentPage === 'subscription' ? 'active' : ''}">
                     <div class="nav-icon">⭐</div>
                     <span>Subscription</span>
                 </a>
             </div>
         </div>
-        
+
         <nav>
-            <a href="profile.html" class="public-link">🌐 View Public Profile</a> |
-            <a href="index.html">🏠 Home</a> |
+            <a href="/profile" class="public-link">🌐 View Public Profile</a> |
+            <a href="/">🏠 Home</a> |
             <a href="#" onclick="logout()" class="logout-link">🚪 Logout</a>
         </nav>
     `;
-    
+
     return navigationHTML;
 }
 
@@ -133,17 +133,28 @@ function getAdminNavigationStyles() {
 // Shared logout function
 async function logout() {
     try {
-        // Import Supabase if not already available
-        if (typeof supabaseClient !== 'undefined') {
-            await supabaseClient.auth.signOut();
-        }
+        // Use Laravel logout
+        const response = await fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+        console.log('Logout result:', result);
+
+        // Clear local storage
         localStorage.removeItem('user');
         localStorage.removeItem('links');
-        window.location.href = 'index.html';
+
+        // Redirect to login page
+        window.location.href = '/login';
     } catch (error) {
         console.error('Logout error:', error);
         // Force redirect even if logout fails
-        window.location.href = 'index.html';
+        window.location.href = '/login';
     }
 }
 

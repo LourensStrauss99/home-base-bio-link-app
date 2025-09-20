@@ -47,13 +47,8 @@
         </div>
     </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
     <!-- Analytics Script -->
     <script src="{{ asset('js/analytics.js') }}"></script>
-    <!-- Supabase UMD Bundle -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <!-- Admin Navigation -->
     <script src="{{ asset('js/admin-nav.js') }}"></script>
     <script>injectAdminNavigation('analytics');</script>

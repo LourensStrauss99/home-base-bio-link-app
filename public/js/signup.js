@@ -1,155 +1,10 @@
-// Signup script with Supabase - UMD version
-// Initialize Supabase client using the global variable
-const { createClient } = supabase;
-
-const supabaseUrl = 'https://kiaqpvwcifgtiliwkxny.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpYXFwdndjaWZndGlsaXdreG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwOTc0OTQsImV4cCI6MjA3MzY3MzQ5NH0.wjy54c99IFy3h-XSONf3yaxeWZlI2Hfu6hvVut6dZTU';
-
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-console.log('Supabase client initialized:', supabaseClient);
-
-// Supabase functions
-const authFunctions = {
-    async signUp(email, password, userData = {}) {
-        try {
-            console.log('Attempting Supabase signup...', { email, userData });
-            console.log('Using emailRedirectTo:', 'https://lourensstrauss99.github.io/HomeBase/confirm.html');
-            
-            const signupOptions = {
-                email: email,
-                password: password,
-                options: {
-                    data: userData,
-                    emailRedirectTo: 'https://lourensstrauss99.github.io/HomeBase/confirm.html'
-                }
-            };
-            
-            console.log('Full signup options:', signupOptions);
-            
-            const { data, error } = await supabaseClient.auth.signUp(signupOptions);
-            
-            console.log('Supabase signup response:', { data, error });
-            console.log('User needs email confirmation:', !data.user?.email_confirmed_at);
-            console.log('Session exists:', !!data.session);
-            
-            if (error) {
-                console.error('Supabase signup error:', error);
-                throw error;
-            }
-            
-            console.log('Signup successful, user data:', data.user);
-            console.log('Session data:', data.session);
-            
-            console.log('Supabase signup success:', data);
-            return { user: data.user, session: data.session };
-        } catch (error) {
-            console.error('Signup error:', error);
-            throw error;
-        }
-    },
-
-    onAuthStateChange(callback) {
-        return supabaseClient.auth.onAuthStateChange(callback);
-    }
-};
-
-const dbFunctions = {
-    async saveUserData(userId, userData) {
-        try {
-            const { data, error } = await supabaseClient
-                .from('users')
-                .upsert({
-                    id: userId,
-                    email: userData.email,
-                    username: userData.username,
-                    photo_url: userData.photo_url || null,
-                    bio: userData.bio || null,
-                    updated_at: new Date().toISOString()
-                })
-                .select();
-
-            if (error) throw error;
-            console.log('User data saved:', data);
-            return data[0];
-        } catch (error) {
-            console.error('Save user data error:', error);
-            throw error;
-        }
-    },
-
-    async checkUsernameExists(username) {
-        try {
-            console.log('Checking username availability for:', username);
-            
-            // Use count instead of select to avoid RLS issues
-            const { count, error } = await supabaseClient
-                .from('users')
-                .select('*', { count: 'exact', head: true })
-                .eq('username', username);
-
-            if (error) {
-                console.warn('Username check error (continuing anyway):', error);
-                // If we can't check, assume it's available to not block signup
-                return false;
-            }
-            
-            console.log('Username check result - count:', count);
-            return count > 0;
-        } catch (error) {
-            console.error('Check username error (continuing anyway):', error);
-            // If we can't check, assume it's available to not block signup
-            return false;
-        }
-    }
-};
-
-const storageFunctions = {
-    async uploadProfilePhoto(userId, file) {
-        try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${userId}/profile.${fileExt}`;
-            
-            const { data, error } = await supabaseClient.storage
-                .from('profile-photos')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: true
-                });
-
-            if (error) throw error;
-
-            const { data: urlData } = supabaseClient.storage
-                .from('profile-photos')
-                .getPublicUrl(fileName);
-
-            return urlData.publicUrl;
-        } catch (error) {
-            console.error('Upload profile photo error:', error);
-            throw error;
-        }
-    }
-};
-
+﻿// Signup script with Laravel authentication
 document.addEventListener('DOMContentLoaded', () => {
-    let isRedirecting = false;
-    
-    // Check if user is already logged in
-    authFunctions.onAuthStateChange((event, session) => {
-        if (session?.user && !isRedirecting) {
-            // User is signed in, redirect to admin
-            isRedirecting = true;
-            setTimeout(() => {
-                window.location.href = 'admin.html';
-            }, 100);
-        }
-    });
-
     // Load saved theme
-    const savedTheme = localStorage.getItem('theme') || 'theme-light';
+    const savedTheme = localStorage.getItem('theme') || 'light-theme';
     document.body.className = savedTheme;
 
-    // Theme change (if theme selector exists)
+    // Theme change
     const themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
         themeSelect.value = savedTheme;
@@ -231,13 +86,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Signup form
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('Form submitted, preventing default action');
         
         const username = document.getElementById('username').value.toLowerCase().trim();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
         const bio = document.getElementById('bio').value.trim();
-        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const submitBtn = e.target.querySelector('button[type=\"submit\"]');
         
         // Debug: Log what we're getting from the form
         console.log('Form data collected:');
@@ -256,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Username can only contain letters, numbers, and underscores!');
             return;
         }
-        
+
         if (username.length < 3 || username.length > 20) {
             alert('Username must be between 3-20 characters!');
             return;
@@ -279,97 +135,53 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            // Skip username checking for now to avoid RLS issues
-            // Username uniqueness will be enforced at the database level
-            console.log('Skipping username check to avoid RLS issues');
-            
-            console.log('Creating Supabase user account...');
-            const result = await authFunctions.signUp(email, password, { username });
-            
-            console.log('Signup result received:', result);
-            console.log('User object:', result.user);
-            console.log('User email confirmed:', result.user?.email_confirmed_at);
-            console.log('User confirmation sent at:', result.user?.confirmation_sent_at);
-            console.log('User identities:', result.user?.identities);
-            console.log('Session:', result.session);
-            
-            if (result.user) {
-                // Check if email confirmation is required
-                if (result.user.email_confirmed_at) {
-                    console.log('Email already confirmed, user can proceed directly');
-                } else {
-                    console.log('Email confirmation required, email should have been sent');
-                    console.log('Check your Supabase Auth settings and email provider configuration');
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('email', email);
+            formData.append('password', password);
+            formData.append('password_confirmation', confirmPassword);
+            formData.append('bio', bio);
+
+            if (selectedPhotoFile) {
+                formData.append('profile_photo', selectedPhotoFile);
+            }
+
+            console.log('Sending signup request to Laravel...');
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            console.log('CSRF token:', csrfToken ? 'Found' : 'Not found');
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                    // Don't set Content-Type for FormData - let browser set it with boundary
                 }
-                // Store signup data for after email confirmation
-                const signupData = {
-                    userId: result.user.id,
-                    username: username,
-                    email: email,
-                    bio: bio,
-                    photoFile: null // Will be set below if photo selected
-                };
-                
-                // If photo selected, convert to base64 for storage
-                if (selectedPhotoFile) {
-                    const base64Data = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            resolve({
-                                data: e.target.result,
-                                name: selectedPhotoFile.name,
-                                type: selectedPhotoFile.type
-                            });
-                        };
-                        reader.readAsDataURL(selectedPhotoFile);
-                    });
-                    signupData.photoFile = base64Data;
-                }
-                
-                localStorage.setItem('pendingSignupData', JSON.stringify(signupData));
-                
-                console.log('Stored signup data for email confirmation:', signupData);
-                
-                // If email is already confirmed (rare case), create user record immediately
-                if (result.user.email_confirmed_at) {
-                    console.log('Email already confirmed, creating user record immediately...');
-                    try {
-                        // Handle photo upload if present
-                        let photoURL = null;
-                        if (selectedPhotoFile) {
-                            try {
-                                photoURL = await storageFunctions.uploadProfilePhoto(result.user.id, selectedPhotoFile);
-                                console.log('Photo uploaded successfully:', photoURL);
-                            } catch (photoError) {
-                                console.warn('Photo upload failed:', photoError);
-                            }
-                        }
-                        
-                        // Create user record
-                        const userData = await dbFunctions.saveUserData(result.user.id, {
-                            email: email,
-                            username: username,
-                            bio: bio,
-                            photo_url: photoURL
-                        });
-                        
-                        console.log('User record created immediately:', userData);
-                        localStorage.removeItem('pendingSignupData');
-                        alert('Account created and confirmed! Redirecting to admin...');
-                        window.location.href = 'admin.html';
-                    } catch (createError) {
-                        console.error('Error creating user record:', createError);
-                        alert('Account created! Please check your email and click the confirmation link to complete your signup.');
-                    }
-                } else {
-                    alert('Account created! Please check your email and click the confirmation link to complete your signup.');
-                }
-                
-                // Note: Email confirmation will be handled by confirm.html page
-                // The auth state listener has been removed to prevent conflicts
-                
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            const result = await response.json();
+            console.log('Response data:', result);
+
+            if (response.ok) {
+                console.log('Signup successful:', result);
+                alert('Account created successfully! Redirecting to login...');
+                window.location.href = '/login';
             } else {
-                throw new Error('Failed to create account');
+                console.error('Signup failed:', result);
+                if (result.errors) {
+                    // Display validation errors
+                    const errorMessages = Object.values(result.errors).flat();
+                    alert('Signup failed:\n' + errorMessages.join('\n'));
+                } else {
+                    alert('Signup failed: ' + (result.message || 'Unknown error'));
+                }
             }
         } catch (error) {
             console.error('Signup error:', error);

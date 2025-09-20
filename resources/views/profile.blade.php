@@ -27,49 +27,23 @@
 </head>
 <body class="theme-light">
     <div class="container">
-        <div class="header">
-            <h1><a href="{{ route('home') }}" style="color: inherit; text-decoration: none;">🏠 HomeBase</a></h1>
-            <a href="{{ route('signup') }}" class="signup-link" title="Create Your HomeBase">✨ Sign Up</a>
-        </div>
-
-        <!-- User Profile Section -->
-        <div class="user-profile-section" id="user-profile-section">
+        <!-- User Profile Section - Centered at Top -->
+        <div class="user-profile-section" id="user-profile-section" style="text-align: center; margin-bottom: 30px;">
             <!-- Profile Photo -->
-            <div class="profile-photo-container" id="profile-photo-container" style="display: none;">
-                <img id="profile-photo" src="" alt="Profile Photo" class="profile-photo">
+            <div class="profile-photo-container" id="profile-photo-container" style="display: none; margin-bottom: 20px;">
+                <img id="profile-photo" src="" alt="Profile Photo" class="profile-photo" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.3);">
             </div>
-
+            
             <!-- Username -->
-            <h2 id="profile-username" class="profile-username">Loading...</h2>
-
+            <h1 id="profile-username" class="profile-username" style="margin: 20px 0 10px 0; font-size: 2em; font-weight: bold;">Loading...</h1>
+            
             <!-- Bio -->
-            <div class="profile-bio-container" id="profile-bio-container" style="display: none;">
-                <p id="profile-bio" class="profile-bio"></p>
-            </div>
-
-            <!-- Create Your Own HomeBase Call-to-Action -->
-            <div class="cta-banner">
-                <p>💡 Want your own HomeBase? <a href="{{ route('signup') }}" class="cta-link">Create yours free!</a></p>
+            <div class="profile-bio-container" id="profile-bio-container" style="display: none; margin-bottom: 20px;">
+                <p id="profile-bio" class="profile-bio" style="font-size: 1.1em; opacity: 0.8; max-width: 400px; margin: 0 auto; line-height: 1.4;"></p>
             </div>
         </div>
-
-        <p id="welcome-text">Click the links below to visit my profiles.</p>
-
-        <!-- Theme Selector -->
-        <div class="theme-selector">
-            <label for="theme-select">🎨 Choose Theme:</label>
-            <select id="theme-select">
-                <option value="theme-default">Deep Blue</option>
-                <option value="theme-purple">Purple</option>
-                <option value="theme-green">Green</option>
-                <option value="theme-orange">Orange</option>
-                <option value="theme-dark">Dark Mode</option>
-                <option value="theme-light">Light Mode</option>
-                <option value="theme-sunset">Sunset</option>
-                <option value="theme-ocean">Ocean</option>
-                <option value="theme-cosmic">Cosmic</option>
-            </select>
-        </div>
+        
+        <p id="welcome-text" style="text-align: center; margin: 20px 0;">Click the links below to visit my profiles.</p>
 
         <div id="add-link-section" style="display: none; margin: 20px 0;">
             <input type="text" id="link-name" placeholder="Link Name (e.g., Instagram)">
@@ -78,9 +52,20 @@
         </div>
         <div class="links">
         </div>
+        
+        <!-- CTA Footer -->
+        <footer style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div class="cta-banner">
+                <p style="margin: 0; opacity: 0.8;">💡 Want your own HomeBase? <a href="{{ route('signup') }}" class="cta-link" style="color: #4CAF50; font-weight: bold; text-decoration: none;">Create yours free!</a></p>
+            </div>
+        </footer>
     </div>
-    <!-- Supabase UMD Bundle -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="{{ asset('js/script.js') }}"></script>
+    <!-- Profile Page Script -->
+    <script>
+        // Pass username from Laravel to JavaScript
+        window.profileUsername = @json($username ?? '');
+        window.isProfilePage = true;
+    </script>
+    <script src="{{ asset('js/script.js') }}?v={{ time() }}"></script>
 </body>
 </html>

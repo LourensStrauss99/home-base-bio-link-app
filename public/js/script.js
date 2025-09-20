@@ -1,22 +1,20 @@
-// Add interactivity to the links - Supabase UMD version
-// Initialize Supabase client using the global variable
-const { createClient } = supabase;
-
-const supabaseUrl = 'https://kiaqpvwcifgtiliwkxny.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpYXFwdndjaWZndGlsaXdreG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwOTc0OTQsImV4cCI6MjA3MzY3MzQ5NH0.wjy54c99IFy3h-XSONf3yaxeWZlI2Hfu6hvVut6dZTU';
-
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+// Add interactivity to the links - Laravel API version
 
 const dbFunctions = {
     async getUserByUsername(username) {
         try {
-            const { data, error } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('username', username)
-                .single();
+            const response = await fetch(`/api/user/${username}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
 
-            if (error) throw error;
+            if (!response.ok) {
+                throw new Error('User not found');
+            }
+
+            const data = await response.json();
             return data;
         } catch (error) {
             console.error('Get user by username error:', error);
@@ -26,17 +24,40 @@ const dbFunctions = {
 
     async getUserLinks(userId) {
         try {
-            const { data, error } = await supabaseClient
-                .from('user_links')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: true });
+            const response = await fetch(`/api/user/${userId}/links`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
 
-            if (error) throw error;
+            if (!response.ok) {
+                return [];
+            }
+
+            const data = await response.json();
             return data || [];
         } catch (error) {
             console.error('Get user links error:', error);
             return [];
+        }
+    },
+
+    async incrementLinkClick(linkId) {
+        try {
+            const response = await fetch(`/api/link/${linkId}/click`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to increment click count');
+            }
+        } catch (error) {
+            console.error('Increment link click error:', error);
         }
     }
 };
@@ -184,7 +205,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if we're loading a specific user's profile
     const urlParams = new URLSearchParams(window.location.search);
-    const profileUsername = urlParams.get('user');
+    const urlUsername = urlParams.get('user');
+    
+    // Use Laravel-passed username if available, otherwise use URL parameter
+    const profileUsername = window.profileUsername || urlUsername;
+    
+    console.log('Profile loading - URL username:', urlUsername);
+    console.log('Profile loading - Laravel username:', window.profileUsername);
+    console.log('Profile loading - Final username:', profileUsername);
     
     // Variables for links and click tracking
     let links = [];
@@ -262,7 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Display profile photo if available
                 if (result.userData.photo_url && profilePhoto) {
-                    profilePhoto.src = result.userData.photo_url;
+                    // Ensure photo URL has the correct Laravel storage prefix
+                    const photoUrl = result.userData.photo_url.startsWith('/storage/') 
+                        ? result.userData.photo_url 
+                        : '/storage/' + result.userData.photo_url;
+                    profilePhoto.src = photoUrl;
                     profilePhoto.alt = `${result.userData.username}'s profile photo`;
                     if (profilePhotoContainer) {
                         profilePhotoContainer.style.display = 'block';
@@ -327,21 +359,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const linkElements = document.querySelectorAll('.link');
         linkElements.forEach((linkElement, index) => {
             const link = links[index];
-            linkElement.addEventListener('click', (e) => {
+            linkElement.addEventListener('click', async (e) => {
                 if (link.url === '#') {
                     e.preventDefault();
                 }
-                
+
                 // Only increment count for valid links
                 if (link.url !== '#' && isUserProfile) {
+                    // Increment click count via API
+                    if (link.id) {
+                        await dbFunctions.incrementLinkClick(link.id);
+                    }
+
                     link.count++;
                     linkElement.querySelector('.count').textContent = link.count;
-                    
-                    // For user profiles, we'd want to update Firestore here
-                    // For now, just track locally for demo purposes
-                    if (!isUserProfile) {
-                        localStorage.setItem('links', JSON.stringify(links));
-                    }
+
+                    // Update local storage for immediate UI feedback
+                    localStorage.setItem('links', JSON.stringify(links));
                 }
             });
 

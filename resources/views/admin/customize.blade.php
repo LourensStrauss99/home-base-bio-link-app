@@ -48,12 +48,7 @@
         <button id="remove-bg">Remove Background</button>
     </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
     <!-- Customize Script -->
-    <!-- Supabase UMD Bundle -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <!-- Admin Navigation -->
     <script src="{{ asset('js/admin-nav.js') }}"></script>
     <script>injectAdminNavigation('customize');</script>

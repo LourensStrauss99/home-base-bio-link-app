@@ -20,12 +20,14 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/icons/AppImages/ios/16.png') }}">
 
     <!-- Theme Color for Mobile Browsers -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#2a5298">
 </head>
 <body class="light-theme">
     <div class="container">
         <h1>Sign Up for HomeBase</h1>
         <form id="signup-form">
+            @csrf
             <input type="text" id="username" placeholder="Username (e.g., johnsmith)" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" title="Username can only contain letters, numbers, and underscores">
             <input type="email" id="email" placeholder="Email" required>
 
@@ -66,8 +68,7 @@
         <button id="theme-toggle">Toggle Theme</button>
     </div>
 
-    <!-- Supabase UMD Bundle -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Laravel Authentication Script -->
     <script src="{{ asset('js/signup.js') }}"></script>
 </body>
 </html>

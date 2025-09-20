@@ -72,8 +72,6 @@
         <button id="theme-toggle">Toggle Theme</button>
     </div>
 
-    <!-- Supabase UMD Bundle -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <!-- Admin Navigation -->
     <script src="{{ asset('js/admin-nav.js') }}"></script>
     <script>injectAdminNavigation('subscription');</script>

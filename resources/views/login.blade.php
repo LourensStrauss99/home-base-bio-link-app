@@ -20,6 +20,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/icons/AppImages/ios/16.png') }}">
 
     <!-- Theme Color for Mobile Browsers -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#2a5298">
 </head>
 <body class="light-theme">
@@ -42,10 +43,7 @@
         <button id="theme-toggle">Toggle Theme</button>
     </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-    <!-- Login Script -->
+    <!-- Laravel Authentication Script -->
     <script src="{{ asset('js/login.js') }}"></script>
 </body>
 </html>
